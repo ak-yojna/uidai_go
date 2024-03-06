@@ -1,0 +1,33 @@
+#+title: Notes
+#+author: Arun Khattri
+#+options: toc:nil
+
+* About
+App for verifying UIDAI offline eKYC document and nice output of various details.
+
+* Table of Contents :TOC_2:
+- [[#about][About]]
+- [[#xml][XML]]
+  - [[#xml-document-validity][XML document validity]]
+- [[#hash-sha256][Hash (SHA256)]]
+- [[#base64-encoding][Base64 encoding]]
+- [[#error-handling][Error handling]]
+- [[#images][Images]]
+
+* XML
++ [[https://pkg.go.dev/github.com/antchfx/xmlquery][xmlquery]] package
++ examples - [[https://golangd.com/g/antchfx-xmlquery][xmlquery]]
++ [[https://pkg.go.dev/github.com/antchfx/xpath][xpath]] package
+** XML document validity
++ things need to happen - [[https://stackoverflow.com/a/7589216/4858908][stackoverflow Q&A]]
++ [[https://github.com/russellhaering/goxmldsig][goxmldsig]]
++ [[https://github.com/moov-io/signedxml][signedxml]]
+* Hash (SHA256)
++ [[https://michaelpeters.dev/posts/hashes-and-strings/][Hashes and Strings in Go]]
+* Base64 encoding
++ [[https://www.golinuxcloud.com/golang-base64-encode/#3_Decoding_a_Base64_string_back_to_its_original_form][Encoding examples]]
+* Error handling
++ [[https://go.dev/blog/error-handling-and-go][Error handling and Go]]
+* Images
++ [[https://pkg.go.dev/image/jpeg#Options][jpeg]] package in Go
++ png or jpeg, convert base64 string to jpeg - [[https://stackoverflow.com/a/46078377/4858908][stackoverflow Q&A]]

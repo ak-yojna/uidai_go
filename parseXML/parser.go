@@ -2,7 +2,10 @@ package parser
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"image/jpeg"
 	"log"
@@ -32,9 +35,16 @@ type Poa struct {
 	subdist string
 	vtc     string
 }
+type Param struct {
+	Em     string `default:"somemail@mail.com"`
+	Pc     string `default:"5771"`
+	Ld     int    `default:"1"`
+	Poi    Poi
+	Email  bool `default:"true"`
+	Mobile bool `defualt:"false"`
+}
 
-func Parser() {
-	// var poa Poa
+func Parser() (poi Poi, poa Poa) {
 	//open our xmlFile
 	xmlFile, err := os.Open("/home/arunkhattri/github/arunkhattri/ak-yojna/uidai_go/data/arun_eKYC.xml")
 	if err != nil {
@@ -59,7 +69,7 @@ func Parser() {
 	sex := poiData.SelectAttr("gender")
 	m := poiData.SelectAttr("m")
 	name := poiData.SelectAttr("name")
-	poi := Poi{
+	poi = Poi{
 		dob:    dateOfBirth,
 		gender: sex,
 		name:   name,
@@ -67,7 +77,7 @@ func Parser() {
 		mobile: m,
 	}
 
-	fmt.Printf("%+v\n", poi)
+	// fmt.Printf("%+v\n", poi)
 
 	// Poa
 	careof := poaData.SelectAttr("careof")
@@ -82,7 +92,7 @@ func Parser() {
 	subdist := poaData.SelectAttr("subdist")
 	vtc := poaData.SelectAttr("vtc")
 
-	poa := Poa{
+	poa = Poa{
 		careof:  careof,
 		country: country,
 		dist:    dist,
@@ -95,7 +105,7 @@ func Parser() {
 		subdist: subdist,
 		vtc:     vtc,
 	}
-	fmt.Printf("%+v\n", poa)
+	// fmt.Printf("%+v\n", poa)
 
 	// Photograph
 	photo := uidData.SelectElement("//Pht").InnerText()
@@ -105,7 +115,7 @@ func Parser() {
 	if err != nil {
 		log.Fatalf("Failed to decode photo string: %v", err)
 	}
-	fmt.Println(decodedPhoto)
+	// fmt.Println(decodedPhoto)
 	r := bytes.NewReader(decodedPhoto)
 	im, err := jpeg.Decode(r)
 	if err != nil {
@@ -118,5 +128,48 @@ func Parser() {
 	}
 	jpeg.Encode(f, im, &jpeg.Options{Quality: 75})
 	fmt.Println("jpeg created...")
+	return
+}
 
+func generateSHA(em string, passCode string, lastDigit int) string {
+	// Generate hash from email and mobile number
+
+	res := em + passCode
+	if lastDigit < 2 {
+		lastDigit = 1
+	}
+	for i := 1; i <= lastDigit; i++ {
+		h := sha256.Sum256([]byte(res))
+		res = hex.EncodeToString(h[:])
+	}
+	return res
+}
+
+func VerifyEM(prm Param) (ok bool, err error) {
+	// check if aadhar data has mobile and email
+	switch {
+	case prm.Email:
+		if prm.Poi.email == "" {
+			ok = false
+			err = errors.New("email: Not Provided during enrollment.")
+		} else if prm.Poi.email == generateSHA(prm.Em, prm.Pc, prm.Ld) {
+			ok = true
+			err = nil
+		} else {
+			ok = false
+			err = errors.New("email: not verified")
+		}
+	case prm.Mobile:
+		if prm.Poi.mobile == "" {
+			ok = false
+			err = errors.New("mobile: Not Provided during enrollment.")
+		} else if prm.Poi.mobile == generateSHA(prm.Em, prm.Pc, prm.Ld) {
+			ok = true
+			err = nil
+		} else {
+			ok = false
+			err = errors.New("mobile: not verified")
+		}
+	}
+	return
 }
